@@ -80,7 +80,7 @@ const Hero = () => {
           <div className="text-center">
             <button 
               onClick={() => setIsBookingModalOpen(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-16 py-8 rounded-full hover:shadow-2xl transition-all duration-500 font-black text-2xl uppercase tracking-wide hover:scale-110 hover:-translate-y-2 shadow-lg border-4 border-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white px-8 sm:px-12 md:px-16 py-6 sm:py-8 rounded-full hover:shadow-2xl transition-all duration-500 font-black text-lg sm:text-xl md:text-2xl uppercase tracking-wide hover:scale-110 hover:-translate-y-2 shadow-lg border-4 border-red-700 w-full sm:w-auto max-w-full text-center"
             >
               BOOK FREE 10-MINUTE CONSULTATION
             </button>
