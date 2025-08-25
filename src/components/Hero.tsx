@@ -34,7 +34,9 @@ const Hero = () => {
           {/* Main Headline */}
           <div className="text-center space-y-8">
             <h1 className="text-6xl lg:text-8xl xl:text-9xl font-black text-gray-900 leading-tight lg:leading-tight xl:leading-tight tracking-tight lg:tracking-wide xl:tracking-wider px-4 lg:px-8">
-              Does Your <span className="text-red-600">Website</span> Reflect the <span className="text-red-600">Quality</span> of Your Clinic?
+              <div className="block">Does Your <span className="text-red-600">Website</span></div>
+              <div className="block">Reflect the <span className="text-red-600">Quality</span> of</div>
+              <div className="block">Your Clinic?</div>
             </h1>
             
             <div className="space-y-6 text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
