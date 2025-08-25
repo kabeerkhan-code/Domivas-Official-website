@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Send, CheckCircle, X } from 'lucide-react';
 import BookingModal from './BookingModal';
+import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -80,30 +82,38 @@ const Contact = () => {
     setSubmitAttempts(prev => prev + 1);
     setLastSubmitTime(Date.now());
     
-    // Create FormData object for Netlify
-    const formDataToSubmit = new URLSearchParams({
-      'form-name': 'contact-form',
-      ...validatedData
-    });
-    
-    // Submit to Netlify
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formDataToSubmit.toString()
-    })
-    .then(() => {
-      setIsSubmitted(true);
-      // Reset form after successful submission
-      setFormData({ name: '', email: '', message: '' });
-    })
-    .catch((error) => {
-      console.error('Form submission failed:', error);
-      alert('There was an error submitting your message. Please try again.');
-    })
-    .finally(() => {
-      setIsSubmitting(false);
-    });
+    // Submit to Supabase
+    supabase
+      .from('contact_messages')
+      .insert({
+        name: validatedData.name,
+        email: validatedData.email,
+        message: validatedData.message,
+        status: 'unread'
+      })
+      .select()
+      .then(({ data, error }) => {
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setIsSubmitted(true);
+          // Reset form after successful submission
+          setFormData({ name: '', email: '', message: '' });
+        }
+      })
+      .catch((error: any) => {
+        console.error('Form submission failed:', error);
+        if (error.message?.includes('duplicate') || error.code === '23505') {
+          alert('You have already sent a message with this email recently. Please wait before sending another message.');
+        } else {
+          alert('There was an error submitting your message. Please try again.');
+        }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -243,14 +253,7 @@ const Contact = () => {
           
           <div className="bg-white border border-gray-200 rounded-3xl p-12 md:p-16 shadow-lg">
           {!isSubmitted ? (
-            <form 
-              name="contact-form" 
-              method="POST" 
-              data-netlify="true"
-              onSubmit={handleSubmit} 
-              className="space-y-8"
-            >
-              <input type="hidden" name="form-name" value="contact-form" />
+            <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <label htmlFor="name" className="block text-sm font-black text-gray-900 mb-4 uppercase tracking-wide">

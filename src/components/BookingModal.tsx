@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Calendar, User, Mail, Phone, Building2 } from 'lucide-react';
-import emailjs from '@emailjs/browser';
+import { supabase } from '../lib/supabase';
+import type { Database } from '../types/database';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -99,19 +100,25 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
     setLastSubmitTime(Date.now());
     
     try {
-      // Submit to Netlify with validated data
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          'form-name': 'consultation-booking',
-          ...validatedData
-        }).toString()
-      });
+      // Submit to Supabase with validated data
+      const { data, error } = await supabase
+        .from('consultation_requests')
+        .insert({
+          name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone,
+          business_name: validatedData.businessName,
+          preferred_date: validatedData.preferredDate,
+          preferred_time: validatedData.preferredTime,
+          status: 'pending'
+        })
+        .select();
       
-      if (response.ok) {
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
         setIsSubmitted(true);
         // Reset form after successful submission
         setFormData({
@@ -122,15 +129,93 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
           preferredDate: '',
           preferredTime: ''
         });
-      } else {
-        throw new Error('Submission failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Form submission error:', error);
-      alert('There was an error submitting your request. Please try again.');
+      if (error.message?.includes('duplicate') || error.code === '23505') {
+        alert('You have already submitted a consultation request with this email. Please contact us directly if you need to make changes.');
+      } else {
+        alert('There was an error submitting your request. Please try again or contact us directly.');
+      }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const validatedValue = validateInput(value, name as any);
+    
+    setFormData({
+      ...formData,
+      [name]: validatedValue
+    });
+  };
+
+  // Generate date options for the next 30 days
+  const generateDateOptions = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 1; i <= 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Skip weekends
+      if (date.getDay() !== 0 && date.getDay() !== 6) {
+        const dateString = date.toISOString().split('T')[0];
+        const displayDate = date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        dates.push({ value: dateString, display: displayDate });
+      }
+    }
+    return dates;
+  };
+
+  // Generate time options based on UK business hours (9am-6pm) but show in user's timezone
+  const generateTimeOptions = () => {
+    const times = [];
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    // UK business hours: 9am to 6pm (every 30 minutes)
+    const ukTimes = [
+      '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+      '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+      '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+    ];
+    
+    ukTimes.forEach(ukTime => {
+      // Create a date object for today with UK time
+      const ukDate = new Date();
+      const [hours, minutes] = ukTime.split(':');
+      ukDate.setUTCHours(parseInt(hours), parseInt(minutes), 0, 0);
+      
+      // Convert to user's timezone
+      const userTime = ukDate.toLocaleTimeString('en-US', {
+        timeZone: userTimezone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      
+      // Get the user's timezone abbreviation
+      const timezoneName = ukDate.toLocaleTimeString('en-US', {
+        timeZone: userTimezone,
+        timeZoneName: 'short'
+      }).split(' ').pop();
+      
+      times.push({
+        value: ukTime,
+        display: `${userTime} (${timezoneName})`,
+        userTime: userTime
+      });
+    });
+    
+    return times;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -239,14 +324,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {!isSubmitted ? (
-            <form 
-              name="consultation-booking" 
-              method="POST" 
-              data-netlify="true"
-              onSubmit={handleSubmit} 
-              className="space-y-6"
-            >
-              <input type="hidden" name="form-name" value="consultation-booking" />
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
               <div>
                 <label htmlFor="name" className="block text-sm font-black text-gray-900 mb-3 uppercase tracking-wide flex items-center">
