@@ -56,7 +56,7 @@ const Services = () => {
                 href="https://domivas-dental-moder-gz3o.bolt.host"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-red-600 hover:bg-red-500 text-white px-20 py-8 rounded-full hover:shadow-2xl transition-all duration-500 font-black text-2xl lg:text-3xl uppercase tracking-wide hover:scale-110 hover:-translate-y-3 shadow-lg border-4 border-red-700 mb-8"
+                className="inline-block bg-red-600 hover:bg-red-500 text-white px-8 sm:px-12 md:px-16 lg:px-20 py-6 sm:py-8 rounded-full hover:shadow-2xl transition-all duration-500 font-black text-lg sm:text-xl md:text-2xl lg:text-3xl uppercase tracking-wide hover:scale-110 hover:-translate-y-3 shadow-lg border-4 border-red-700 mb-8 text-center w-full sm:w-auto max-w-full"
               >
                 Explore Live Demo Site
               </a>
