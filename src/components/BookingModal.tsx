@@ -33,7 +33,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
     switch (type) {
       case 'name':
       case 'business':
-        return sanitized.replace(/[<>\"']/g, '').substring(0, 100);
+        return sanitized.replace(/[<>\"']/g, '').replace(/\s+/g, ' ').substring(0, 100);
       case 'email':
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(sanitized) ? sanitized.substring(0, 254) : '';
