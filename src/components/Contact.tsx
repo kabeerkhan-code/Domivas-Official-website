@@ -118,11 +118,10 @@ const Contact = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const validatedValue = validateInput(value, name as any);
     
     setFormData({
       ...formData,
-      [name]: validatedValue
+      [name]: value
     });
   };
 

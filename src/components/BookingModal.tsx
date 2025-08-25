@@ -144,11 +144,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const validatedValue = validateInput(value, name as any);
     
     setFormData({
       ...formData,
-      [name]: validatedValue
+      [name]: value
     });
   };
 
